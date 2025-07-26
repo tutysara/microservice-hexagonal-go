@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/gorilla/mux"
+	"github.com/tutysara/banking-go/app/service"
 )
 
 type Customer struct {
@@ -15,24 +15,17 @@ type Customer struct {
 	Zipcode string `json:"zip_code" xml:"zipcode"`
 }
 
-func greet(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "hello word !!")
-}
-
-func getCustomer(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	fmt.Fprintf(w, vars["customer_id"])
+// this adapter (REST handlers) depends on the primary port aka service interface
+type CustomerHandlers struct {
+	service service.DefaultCustomerService
 }
 
 func createCustomer(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "post request received")
 }
 
-func getAllCustomers(w http.ResponseWriter, r *http.Request) {
-	customers := []Customer{
-		{"Saran", "Bang", "560100"},
-		{"Dhana", "Bang", "560100"},
-	}
+func (h CustomerHandlers) getAllCustomer(w http.ResponseWriter, r *http.Request) {
+	customers, _ := h.service.GetAllCustomer()
 
 	if r.Header.Get("Content-Type") == "application/xml" {
 		w.Header().Add("Content-Type", "application/xml")
@@ -41,5 +34,4 @@ func getAllCustomers(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(customers)
 	}
-
 }
