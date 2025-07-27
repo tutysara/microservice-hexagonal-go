@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/tutysara/banking-go/app/domain"
-	"github.com/tutysara/banking-go/app/service"
+	"github.com/tutysara/banking-go/domain"
+	"github.com/tutysara/banking-go/service"
 )
 
 func Start() {

@@ -8,7 +8,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/tutysara/banking-go/app/service"
+	"github.com/tutysara/banking-go/service"
 )
 
 type Customer struct {
