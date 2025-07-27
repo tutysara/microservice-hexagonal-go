@@ -1,5 +1,7 @@
 package domain
 
+import "github.com/tutysara/banking-go/errs"
+
 type Customer struct {
 	Id          string
 	Name        string
@@ -12,4 +14,5 @@ type Customer struct {
 // secondary port
 type CustomerRepository interface {
 	FindAll() ([]Customer, error)
+	ById(id string) (*Customer, *errs.AppError) // to return nil when customer is not found
 }

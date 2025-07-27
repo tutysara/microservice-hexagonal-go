@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"log"
 	"net/http"
 
+	"github.com/gorilla/mux"
 	"github.com/tutysara/banking-go/app/service"
 )
 
@@ -34,4 +36,20 @@ func (h CustomerHandlers) getAllCustomer(w http.ResponseWriter, r *http.Request)
 		w.Header().Add("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(customers)
 	}
+}
+
+func (h CustomerHandlers) getCustomer(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["customer_id"]
+	log.Println("id", id)
+	customer, err := h.service.GetCustomer(id)
+	log.Println("customer=", customer)
+	if err != nil {
+		w.WriteHeader(err.Code)
+		fmt.Fprintf(w, err.Message)
+	} else {
+		w.Header().Add("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(customer) // Encode works even with pointer to struct
+	}
+
 }
