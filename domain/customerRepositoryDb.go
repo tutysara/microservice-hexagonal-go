@@ -22,14 +22,21 @@ const (
 	dbname   = "banking"
 )
 
-func (d CustomerRepositoryDb) FindAll() ([]Customer, error) {
+func (d CustomerRepositoryDb) FindAll(status string) ([]Customer, *errs.AppError) {
+	var rows *sql.Rows
+	var err error
 
-	findAllSql := "select customer_id, name, city, zipcode, date_of_birth, status from customers"
-	rows, err := d.client.Query(findAllSql)
+	if status == "" {
+		findAllSql := "select customer_id, name, city, zipcode, date_of_birth, status from customers"
+		rows, err = d.client.Query(findAllSql)
+	} else {
+		findAllSql := "select customer_id, name, city, zipcode, date_of_birth, status from customers where status=$1"
+		rows, err = d.client.Query(findAllSql, status)
+	}
 
 	if err != nil {
 		log.Print("Error while querying customer table: " + err.Error())
-		return nil, err
+		return nil, errs.NewUnexpectedError("Error while querying customer table " + err.Error())
 	}
 
 	customers := make([]Customer, 0)
@@ -38,7 +45,7 @@ func (d CustomerRepositoryDb) FindAll() ([]Customer, error) {
 		err := rows.Scan(&c.Id, &c.Name, &c.City, &c.ZipCode, &c.DateOfBirth, &c.Status)
 		if err != nil {
 			log.Print("Error while scanning customers: " + err.Error())
-			return nil, err
+			return nil, errs.NewUnexpectedError("Unexpected error in server")
 
 		}
 		customers = append(customers, c)
@@ -55,7 +62,7 @@ func (d CustomerRepositoryDb) ById(id string) (*Customer, *errs.AppError) {
 	if err != nil {
 		if err == sql.ErrNoRows {
 			log.Println("Error no customers returned " + err.Error())
-			return nil, errs.NewNotFoundError("No Customers Found in Repo")
+			return nil, errs.NewNotFoundError("No Customer Found in Repo")
 		} else {
 			log.Print("Error while scanning customer: " + err.Error())
 			return nil, errs.NewUnexpectedError("Unexpected error in server")

@@ -20,9 +20,15 @@ func createCustomer(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h CustomerHandlers) getAllCustomer(w http.ResponseWriter, r *http.Request) {
-	customers, _ := h.service.GetAllCustomer()
-	w.Header().Add("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(customers)
+	status := r.URL.Query().Get("status")
+	customers, err := h.service.GetAllCustomer(status)
+	if err != nil {
+		writeResponse(w, err.Code, err.AsMessage())
+
+	} else {
+		writeResponse(w, http.StatusOK, customers)
+
+	}
 }
 
 func (h CustomerHandlers) getCustomer(w http.ResponseWriter, r *http.Request) {
