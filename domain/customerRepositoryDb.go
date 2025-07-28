@@ -7,6 +7,7 @@ import (
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/tutysara/banking-go/errs"
+	"github.com/tutysara/banking-go/logger"
 )
 
 // this adapter should implement secondary port (CustomerRepository)
@@ -35,7 +36,7 @@ func (d CustomerRepositoryDb) FindAll(status string) ([]Customer, *errs.AppError
 	}
 
 	if err != nil {
-		log.Print("Error while querying customer table: " + err.Error())
+		logger.Error("Error while querying customer table: " + err.Error())
 		return nil, errs.NewUnexpectedError("Error while querying customer table " + err.Error())
 	}
 
@@ -44,7 +45,7 @@ func (d CustomerRepositoryDb) FindAll(status string) ([]Customer, *errs.AppError
 		var c Customer
 		err := rows.Scan(&c.Id, &c.Name, &c.City, &c.ZipCode, &c.DateOfBirth, &c.Status)
 		if err != nil {
-			log.Print("Error while scanning customers: " + err.Error())
+			logger.Error("Error while scanning customers: " + err.Error())
 			return nil, errs.NewUnexpectedError("Unexpected error in server")
 
 		}
@@ -61,10 +62,10 @@ func (d CustomerRepositoryDb) ById(id string) (*Customer, *errs.AppError) {
 	err := row.Scan(&c.Id, &c.Name, &c.City, &c.ZipCode, &c.DateOfBirth, &c.Status)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			log.Println("Error no customers returned " + err.Error())
+			logger.Error("Error no customers returned " + err.Error())
 			return nil, errs.NewNotFoundError("No Customer Found in Repo")
 		} else {
-			log.Print("Error while scanning customer: " + err.Error())
+			logger.Error("Error while scanning customer: " + err.Error())
 			return nil, errs.NewUnexpectedError("Unexpected error in server")
 		}
 
