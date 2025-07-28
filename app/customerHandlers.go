@@ -42,5 +42,7 @@ func (h CustomerHandlers) getCustomer(w http.ResponseWriter, r *http.Request) {
 func writeResponse(w http.ResponseWriter, code int, data interface{}) {
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(code)
-	json.NewEncoder(w).Encode(data) // Encode works even with pointer to struct
+	if err := json.NewEncoder(w).Encode(data); err != nil { // Encode works even with pointer to struct
+		panic(err)
+	}
 }
