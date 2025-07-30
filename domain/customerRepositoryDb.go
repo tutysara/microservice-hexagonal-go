@@ -2,10 +2,7 @@ package domain
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
-	"os"
-	"strconv"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/jmoiron/sqlx"
@@ -64,33 +61,6 @@ func (d CustomerRepositoryDb) ById(id string) (*Customer, *errs.AppError) {
 	return &c, nil
 }
 
-func connectDB() (*sqlx.DB, error) {
-	host := os.Getenv("DBHOST")
-	port, _ := strconv.Atoi(os.Getenv("DBPORT"))
-	user := os.Getenv("DBUSER")
-	password := os.Getenv("DBPASSWORD")
-	dbname := os.Getenv("DBNAME")
-
-	connStr := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
-		host, port, user, password, dbname)
-
-	db, err := sqlx.Open("pgx", connStr)
-	if err != nil {
-		return nil, err
-	}
-
-	err = db.Ping()
-	if err != nil {
-		return nil, err
-	}
-
-	return db, nil
-}
-
-func NewCustomerRepositoryDb() CustomerRepositoryDb {
-	client, err := connectDB() // TODO: how to create connection only when used?
-	if err != nil {
-		panic(err)
-	}
-	return CustomerRepositoryDb{client}
+func NewCustomerRepositoryDb(dbclient *sqlx.DB) CustomerRepositoryDb {
+	return CustomerRepositoryDb{dbclient}
 }

@@ -5,8 +5,10 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/gorilla/mux"
+	"github.com/jmoiron/sqlx"
 	"github.com/tutysara/banking-go/domain"
 	"github.com/tutysara/banking-go/service"
 )
@@ -36,6 +38,29 @@ func sanityCheck() {
 
 }
 
+func getClientDb() (*sqlx.DB, error) {
+	host := os.Getenv("DBHOST")
+	port, _ := strconv.Atoi(os.Getenv("DBPORT"))
+	user := os.Getenv("DBUSER")
+	password := os.Getenv("DBPASSWORD")
+	dbname := os.Getenv("DBNAME")
+
+	connStr := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
+		host, port, user, password, dbname)
+
+	db, err := sqlx.Open("pgx", connStr)
+	if err != nil {
+		return nil, err
+	}
+
+	err = db.Ping()
+	if err != nil {
+		return nil, err
+	}
+
+	return db, nil
+}
+
 func Start() {
 
 	sanityCheck()
@@ -43,7 +68,20 @@ func Start() {
 	router := mux.NewRouter()
 
 	// wiring the application
-	ch := CustomerHandlers{service.NewCustomerService(domain.NewCustomerRepositoryDb())}
+	dbclient, err := getClientDb() // TODO: how to create connection only when used?
+	if err != nil {
+		panic(err)
+	}
+	ch := CustomerHandlers{service.NewCustomerService(domain.NewCustomerRepositoryDb(dbclient))}
+	adb := domain.NewAccountRepositoryDb(dbclient)
+	account := domain.Account{
+		CustomerId:  "2005",
+		OpeningDate: "2020-08-09 10:35:22",
+		AccountType: "saving",
+		Amount:      32432.34,
+		Status:      "1",
+	}
+	adb.Save(account)
 	// define routes
 	router.HandleFunc("/customers", ch.getAllCustomer).Methods(http.MethodGet)
 	router.HandleFunc("/customers", createCustomer).Methods(http.MethodPost)
