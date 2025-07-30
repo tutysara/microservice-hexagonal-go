@@ -6,13 +6,14 @@ import (
 	"log"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/jmoiron/sqlx"
 	"github.com/tutysara/banking-go/errs"
 	"github.com/tutysara/banking-go/logger"
 )
 
 // this adapter should implement secondary port (CustomerRepository)
 type CustomerRepositoryDb struct {
-	client *sql.DB
+	client *sqlx.DB
 }
 
 const (
@@ -41,17 +42,12 @@ func (d CustomerRepositoryDb) FindAll(status string) ([]Customer, *errs.AppError
 	}
 
 	customers := make([]Customer, 0)
-	for rows.Next() {
-		var c Customer
-		err := rows.Scan(&c.Id, &c.Name, &c.City, &c.ZipCode, &c.DateOfBirth, &c.Status)
-		if err != nil {
-			logger.Error("Error while scanning customers: " + err.Error())
-			return nil, errs.NewUnexpectedError("Unexpected error in server")
+	err = sqlx.StructScan(rows, &customers) //LRN: TODO: GO compiler didn't protected from passing customer instead of pointer, was a runtime error
+	if err != nil {
+		logger.Error("Error while scanning customers: " + err.Error())
+		return nil, errs.NewUnexpectedError("Unexpected error in server")
 
-		}
-		customers = append(customers, c)
 	}
-
 	return customers, nil
 }
 
@@ -74,11 +70,11 @@ func (d CustomerRepositoryDb) ById(id string) (*Customer, *errs.AppError) {
 	return &c, nil
 }
 
-func connectDB() (*sql.DB, error) {
+func connectDB() (*sqlx.DB, error) {
 	connStr := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 		host, port, user, password, dbname)
 
-	db, err := sql.Open("pgx", connStr)
+	db, err := sqlx.Open("pgx", connStr)
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +88,7 @@ func connectDB() (*sql.DB, error) {
 }
 
 func NewCustomerRepositoryDb() CustomerRepositoryDb {
-	client, err := connectDB()
+	client, err := connectDB() // TODO: how to create connection only when used?
 	if err != nil {
 		panic(err)
 	}

@@ -3,11 +3,11 @@ package domain
 import "github.com/tutysara/banking-go/errs"
 
 type Customer struct {
-	Id          string
+	Id          string `db:"customer_id"` // LRN: TODO: Go compiler doesn't protect from this, runtime error on mismatch between db and dto
 	Name        string
 	City        string
 	ZipCode     string
-	DateOfBirth string
+	DateOfBirth string `db:"date_of_birth"`
 	Status      string
 }
 
