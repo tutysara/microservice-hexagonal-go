@@ -73,19 +73,12 @@ func Start() {
 		panic(err)
 	}
 	ch := CustomerHandlers{service.NewCustomerService(domain.NewCustomerRepositoryDb(dbclient))}
-	adb := domain.NewAccountRepositoryDb(dbclient)
-	account := domain.Account{
-		CustomerId:  "2005",
-		OpeningDate: "2020-08-09 10:35:22",
-		AccountType: "saving",
-		Amount:      32432.34,
-		Status:      "1",
-	}
-	adb.Save(account)
+	ah := AccountHandlers{service.NewAccountService(domain.NewAccountRepositoryDb(dbclient))}
 	// define routes
 	router.HandleFunc("/customers", ch.getAllCustomer).Methods(http.MethodGet)
 	router.HandleFunc("/customers", createCustomer).Methods(http.MethodPost)
 	router.HandleFunc("/customers/{customer_id:[0-9]+}", ch.getCustomer).Methods(http.MethodGet)
+	router.HandleFunc("/customers/{customer_id:[0-9]+}/accounts", ah.newAccount).Methods(http.MethodPost)
 
 	serverAddr := os.Getenv("SERVER_ADDRESS")
 	serverPort := os.Getenv("SERVER_PORT")
