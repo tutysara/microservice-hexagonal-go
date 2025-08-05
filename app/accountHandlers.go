@@ -25,6 +25,8 @@ func (h AccountHandlers) newAccount(w http.ResponseWriter, r *http.Request) {
 	customerId := vars["customer_id"]
 	var request dto.NewAccountRequest
 	err := json.NewDecoder(r.Body).Decode(&request)
+	defer r.Body.Close()
+
 	if err != nil {
 		writeResponse(w, http.StatusBadRequest, err.Error())
 	} else {
@@ -36,4 +38,29 @@ func (h AccountHandlers) newAccount(w http.ResponseWriter, r *http.Request) {
 			writeResponse(w, http.StatusCreated, account)
 		}
 	}
+}
+
+func (h AccountHandlers) makeTransaction(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars((r))
+	customerId := vars["customer_id"]
+	accountId := vars["account_id"]
+
+	var request dto.TransactionRequest
+	err := json.NewDecoder(r.Body).Decode(&request)
+	defer r.Body.Close()
+
+	if err != nil {
+		writeResponse(w, http.StatusBadRequest, err.Error)
+	} else {
+		request.CustomerId = customerId
+		request.AccountId = accountId
+		resp, appEror := h.service.MakeTransaction(request)
+
+		if appEror != nil {
+			writeResponse(w, appEror.Code, appEror.AsMessage())
+		} else {
+			writeResponse(w, http.StatusCreated, resp)
+		}
+	}
+
 }
