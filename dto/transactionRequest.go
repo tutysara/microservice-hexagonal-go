@@ -22,7 +22,7 @@ func (req TransactionRequest) Validate() *errs.AppError {
 		return errs.NewValidationError("Amount should be > 0")
 	}
 
-	if strings.ToLower(req.TransactionType) != WITHDRAWAL && strings.ToLower(req.TransactionType) != DEPOSIT {
+	if !req.IsDeposit() && !req.IsWithDrawal() {
 		logger.Info("req.TransactionType==" + req.TransactionType)
 		return errs.NewValidationError("Transaction type should be withdrawal or deposit")
 	}
@@ -31,5 +31,9 @@ func (req TransactionRequest) Validate() *errs.AppError {
 }
 
 func (req TransactionRequest) IsWithDrawal() bool {
-	return req.TransactionType == WITHDRAWAL
+	return strings.ToLower(req.TransactionType) == WITHDRAWAL
+}
+
+func (req TransactionRequest) IsDeposit() bool {
+	return strings.ToLower(req.TransactionType) == DEPOSIT
 }
